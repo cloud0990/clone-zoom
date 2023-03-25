@@ -4,11 +4,17 @@ html(lang="en")
         meta(charset="UTF-8")
         meta(http-equiv="X-UA-Compatible", content="IE=edge")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        title Noom
+        title 쥼
         link(rel="stylesheet", href="https://unpkg.com/mvp.css")
     body
         header
-            h1 Noom
+            h1 쥼
         main
-            h2 Welcome to Noom
+            form#nickname
+                input(type="text", placeholder="닉네임을 입력하세요.", required)
+                button 저장
+            ul
+            form#message
+                input(type="text", placeholder="메세지를 입력하세요.", required)
+                button 전송
         script(src="/public/js/app.js")
