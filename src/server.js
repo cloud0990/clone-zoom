@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import { Server } from "socket.io"
+import { Server } from "socket.io";
 
 const app = express();
 
@@ -39,9 +39,6 @@ wsServer.on("connection", socket => {
     });
 
     socket.on("new_message", (msg, done) => {
-
-        console.log()
-
         socket.to(msg.room).emit("new_message", `${socket.nickname}: ${msg.message}`);
 
         done();
