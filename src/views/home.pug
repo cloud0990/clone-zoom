@@ -4,17 +4,23 @@ html(lang="en")
         meta(charset="UTF-8")
         meta(http-equiv="X-UA-Compatible", content="IE=edge")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        title 쥼
+        title Noom
         link(rel="stylesheet", href="https://unpkg.com/mvp.css")
+        link(rel="stylesheet", href="../public/css/home.css")
     body
         header
-            h1 쥼
+            h1 Noom
         main
-            form#nickname
-                input(type="text", placeholder="닉네임을 입력하세요.", required)
-                button 저장
-            ul
-            form#message
-                input(type="text", placeholder="메세지를 입력하세요.", required)
-                button 전송
+            div#welcome
+                form#frm-name
+                    input#nickname(placeholder="닉네임", required, type="text")
+                    input#roomName(placeholder="방 이름", required, type="text")
+                    button(style="width: 100%;") 입장
+            div#room
+                h3
+                ul#chat-area
+                form#frm-msg
+                    input#userChat(placeholder="메세지", required, type="text")
+                    button(style="width: 100%;") 전송
+        script(src="/socket.io/socket.io.js")
         script(src="/public/js/app.js")

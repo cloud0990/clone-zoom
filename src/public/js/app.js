@@ -1,47 +1,66 @@
-const messageList = document.querySelector("ul");
-const messageForm = document.querySelector("#message");
-const nickForm = document.querySelector("#nickname");
+const socket = io();
 
-// 서버로 연결
-const socket = new WebSocket(`ws://${window.location.host}`);
+const welcomeDiv = document.getElementById("welcome");
+const enterForm = document.getElementById("frm-name");
 
-socket.addEventListener("message", () => {
-    console.log("Connected to Server")
-});
-socket.addEventListener("close", () => {
-    console.log("Disconnected from Server")
-});
+const roomDiv = document.getElementById("room");
+roomDiv.hidden = true;
 
-socket.addEventListener("message", (msg) => {
-    const li = document.createElement("li");
+let roomInfo;
 
-    li.innerText = msg.data;
-    messageList.append(li);
-});
+function addMessage(message) {
+    const chatArea = document.getElementById("chat-area");
+    const chat = document.createElement("li");
 
-function makeMsg(type, payload) {
-    const msg = {type, payload};
-    return JSON.stringify(msg);
+    chat.style.cssText = "margin-top: 1%; list-style: none;";
+
+    chat.innerText = message;
+    chatArea.appendChild(chat);
+
+    chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function handleSubmit(event) {
+function handleMessageSubmit(event) {
     event.preventDefault();
-    const input = messageForm.querySelector("input");
 
-    const li = document.createElement("li");
-    li.innerText = `나: ${input.value}`;
-    messageList.append(li);
+    const userChat = document.getElementById("userChat");
+    const value = userChat.value;
 
-    socket.send(makeMsg("new_message", input.value));
-    input.value = "";
+    let paramObj = {
+        message: userChat.value,
+        room: roomInfo
+    };
+
+    socket.emit("new_message", paramObj, () => addMessage(value));
+
+    userChat.value = "";
 }
 
-function handleNickSubmit() {
+function showRoom() {
+    welcomeDiv.hidden = true;
+    roomDiv.hidden = false;
+
+    const h3 = roomDiv.querySelector("h3");
+    h3.innerText = `Room ${roomInfo}`;
+
+    const msgForm = roomDiv.querySelector("#frm-msg");
+    msgForm.addEventListener("submit", handleMessageSubmit);
+}
+
+function handleEnterRoomSubmit() {
     event.preventDefault();
-    const input = nickForm.querySelector("input");
 
-    socket.send(makeMsg("nickname", input.value));
+    const nickname = document.getElementById("nickname");
+    const roomName = document.getElementById("roomName");
+
+    //          custom event   argument                                         callback
+    socket.emit("enter_room", {nickname: nickname.value, room: roomName.value}, showRoom);
+
+    roomInfo = roomName.value;
 }
 
-messageForm.addEventListener("submit", handleSubmit);
-nickForm.addEventListener("submit", handleNickSubmit);
+enterForm.addEventListener("submit", handleEnterRoomSubmit);
+
+socket.on("welcome", (nickname) => addMessage(`${nickname} 님이 입장하셨습니다.`));
+socket.on("bye", (nickname) => addMessage(`${nickname} 님이 방을 나가셨습니다.`));
+socket.on("new_message", (message) => addMessage(message));

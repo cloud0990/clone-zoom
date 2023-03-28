@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import WebSocket from "ws";
+import { Server } from "socket.io"
 
 const app = express();
 
@@ -12,38 +12,43 @@ app.get("/*", (_, res) => res.redirect("/"));
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
-// Http Server set
-const server = http.createServer(app);
-// WebSocket Server set
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const wsServer = new Server(httpServer);
 
-const sockets = [];
+wsServer.on("connection", socket => {
 
-// 브라우저 연결
-wss.on("connection", (socket) => {
-    console.log("Connected to Browser");
-    socket.on("close", () => console.log("Disconnected from th Browser"));
-
-    sockets.push(socket);
-    socket["nickname"] = "익명";
-
-    socket.on("message", (msg) => {
-        const message = JSON.parse(msg);
-
-        switch(message.type) {
-            case "new_message":
-                sockets.forEach((s) => {
-                    s.send(`${socket.nickname}: ${message.payload}`);
-                });
-                break;
-            case "nickname":
-                socket["nickname"] = message.payload;
-                break;
-        }
-
+    // socket.onAny(): 이벤트가 발생할 때 실행될 리스너
+    socket.onAny((event) => {
+        console.log(`Socket Event: ${event}`)
     });
+
+    socket.on("enter_room", (enterInfo, done) => {
+        socket.join(enterInfo.room);
+
+        socket["nickname"] = enterInfo.nickname;
+
+        done(); // TODO front-end callback fn을 back-end 에서 실행시킴
+
+        socket.to(enterInfo.room).emit("welcome", socket.nickname);
+    });
+
+    socket.on("disconnecting", () => {
+        socket.rooms.forEach((room) => {
+            socket.to(room).emit("bye", socket.nickname);
+        });
+    });
+
+    socket.on("new_message", (msg, done) => {
+
+        console.log()
+
+        socket.to(msg.room).emit("new_message", `${socket.nickname}: ${msg.message}`);
+
+        done();
+    });
+
 });
 
-server.listen(3000, handleListen);
+httpServer.listen(3000, handleListen);
 
 
